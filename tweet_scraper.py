@@ -66,7 +66,7 @@ async def get_tweets_zendriver(topic, proxy=None):
         # Navigate to Twitter search
         search_url = f"https://x.com/search?q={topic}&f=live"
         print(f"Navigating to: {search_url}", file=sys.stderr)
-        await tab.goto(search_url)
+        await tab.get(search_url)
 
         # Wait for tweets to load
         await asyncio.sleep(6)

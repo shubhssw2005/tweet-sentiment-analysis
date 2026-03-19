@@ -34,7 +34,7 @@ async def test_zendriver():
         print("   ✓ Tab created")
 
         print("4. Navigating to Twitter search...")
-        await tab.goto("https://x.com/search?q=bitcoin&f=live")
+        await tab.get("https://x.com/search?q=bitcoin&f=live")
         print("   ✓ Navigated")
 
         print("5. Waiting for page load...")
