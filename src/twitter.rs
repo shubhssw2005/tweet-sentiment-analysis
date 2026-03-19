@@ -109,25 +109,18 @@ impl TwitterClient {
             if let Ok(user) = serde_json::from_value::<TwitterUser>(user_val.clone()) {
                 if let Some(status) = user.status {
                     if !status.text.is_empty() {
-                        let text_lower = status.text.to_lowercase();
-                        let matches_topic = topics.iter().any(|topic| {
-                            text_lower.contains(&topic.to_lowercase())
+                        tweets.push(Tweet {
+                            id: format!("{}_{}", user.id, user.screen_name),
+                            text: status.text.clone(),
+                            created_at: status.created_at,
                         });
-                        
-                        if matches_topic {
-                            tweets.push(Tweet {
-                                id: format!("{}_{}", user.id, user.screen_name),
-                                text: status.text.clone(),
-                                created_at: status.created_at,
-                            });
-                        }
                     }
                 }
             }
         }
         
         if tweets.is_empty() {
-            log::warn!("No tweets found matching topics from Twitter241");
+            log::warn!("No tweets found from Twitter241");
             return Err("No tweets found".into());
         }
         
@@ -165,12 +158,7 @@ impl TwitterClient {
         if let Some(items) = data.get("data").and_then(|v| v.as_array()) {
             for item in items {
                 if let Some(text) = item.get("text").and_then(|v| v.as_str()) {
-                    let text_lower = text.to_lowercase();
-                    let matches_topic = topics.iter().any(|topic| {
-                        text_lower.contains(&topic.to_lowercase())
-                    });
-                    
-                    if matches_topic {
+                    if !text.is_empty() {
                         let id = item.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
                         let created_at = item.get("created_at").and_then(|v| v.as_str()).unwrap_or("");
                         
@@ -185,7 +173,7 @@ impl TwitterClient {
         }
         
         if tweets.is_empty() {
-            log::warn!("No tweets found matching topics from twitter-api45");
+            log::warn!("No tweets found from twitter-api45");
             return Err("No tweets found".into());
         }
         
