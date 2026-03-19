@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, HttpResponse, middleware};
+use actix_web::{web, App, HttpServer, HttpResponse, middleware, http};
 use std::sync::{Arc, Mutex};
 use tokio::task;
 use serde::{Deserialize, Serialize};
@@ -63,6 +63,12 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(middleware::Logger::default())
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add(("Access-Control-Allow-Origin", "*"))
+                    .add(("Access-Control-Allow-Methods", "GET, POST, OPTIONS"))
+                    .add(("Access-Control-Allow-Headers", "Content-Type"))
+            )
             .app_data(web::Data::new(model))
             .app_data(web::Data::new(twitter_client))
             .app_data(web::Data::new(results))
