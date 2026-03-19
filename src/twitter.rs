@@ -42,13 +42,22 @@ impl TwitterClient {
     }
 
     pub async fn fetch_tweets_for_topics(&self, topics: &[String]) -> Result<Vec<Tweet>, Box<dyn Error>> {
+        // Try Twitter241 API first
+        match self.fetch_from_twitter241(topics).await {
+            Ok(tweets) if !tweets.is_empty() => return Ok(tweets),
+            _ => {}
+        }
+        
+        // Fallback to twitter-api45
+        self.fetch_from_twitter_api45(topics).await
+    }
+
+    async fn fetch_from_twitter241(&self, topics: &[String]) -> Result<Vec<Tweet>, Box<dyn Error>> {
         let client = reqwest::Client::new();
         
         let search_query = topics.join(" ");
-        log::info!("🔍 Fetching REAL tweets from Twitter241 API for topics: {}", search_query);
+        log::info!("🔍 Fetching tweets from Twitter241 API for topics: {}", search_query);
         
-        // Use the get-users-v2 endpoint with user IDs
-        // For now, using popular user IDs that tweet about crypto/finance
         let user_ids = "1222790936679206913,133938408,34186021";
         
         let response = client
@@ -64,7 +73,7 @@ impl TwitterClient {
         if !response.status().is_success() {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
-            log::error!("❌ Twitter241 API error {}: {}", status, body);
+            log::error!("Twitter241 API error {}: {}", status, body);
             return Err(format!("Twitter241 API error {}: {}", status, body).into());
         }
 
@@ -72,42 +81,34 @@ impl TwitterClient {
         
         let mut tweets = Vec::new();
         
-        // Parse users from response - API returns object with various possible structures
         let users_data = if data.is_array() {
-            // Direct array response
             data.as_array().unwrap().clone()
         } else if let Some(result) = data.get("result") {
-            // Response has "result" key
             if result.is_array() {
                 result.as_array().unwrap().clone()
             } else {
                 vec![result.clone()]
             }
         } else if let Some(data_field) = data.get("data") {
-            // Response has "data" key
             if data_field.is_array() {
                 data_field.as_array().unwrap().clone()
             } else {
                 vec![data_field.clone()]
             }
         } else if let Some(users_field) = data.get("users") {
-            // Response has "users" key
             if users_field.is_array() {
                 users_field.as_array().unwrap().clone()
             } else {
                 vec![users_field.clone()]
             }
         } else {
-            // Treat entire response as single user object
             vec![data]
         };
         
-        // Extract tweets from user statuses
         for user_val in users_data {
             if let Ok(user) = serde_json::from_value::<TwitterUser>(user_val.clone()) {
                 if let Some(status) = user.status {
                     if !status.text.is_empty() {
-                        // Filter by topics - only include if tweet contains any topic keyword
                         let text_lower = status.text.to_lowercase();
                         let matches_topic = topics.iter().any(|topic| {
                             text_lower.contains(&topic.to_lowercase())
@@ -126,11 +127,69 @@ impl TwitterClient {
         }
         
         if tweets.is_empty() {
-            log::warn!("⚠️ No tweets found matching topics: {:?}", topics);
-            return Err("No tweets found for these topics".into());
+            log::warn!("No tweets found matching topics from Twitter241");
+            return Err("No tweets found".into());
         }
         
-        log::info!("✅ Fetched {} REAL tweets from Twitter241 API matching topics", tweets.len());
+        log::info!("✅ Fetched {} tweets from Twitter241 API", tweets.len());
+        Ok(tweets)
+    }
+
+    async fn fetch_from_twitter_api45(&self, topics: &[String]) -> Result<Vec<Tweet>, Box<dyn Error>> {
+        let client = reqwest::Client::new();
+        
+        let search_query = topics.join(" ");
+        log::info!("🔍 Fetching tweets from twitter-api45 for topics: {}", search_query);
+        
+        let response = client
+            .get("https://twitter-api45.p.rapidapi.com/community_info.php")
+            .header("x-rapidapi-key", &self.api_key)
+            .header("x-rapidapi-host", "twitter-api45.p.rapidapi.com")
+            .header("Content-Type", "application/json")
+            .timeout(std::time::Duration::from_secs(30))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            log::error!("twitter-api45 error {}: {}", status, body);
+            return Err(format!("twitter-api45 error {}: {}", status, body).into());
+        }
+
+        let data: serde_json::Value = response.json().await?;
+        
+        let mut tweets = Vec::new();
+        
+        // Parse response and extract tweets
+        if let Some(items) = data.get("data").and_then(|v| v.as_array()) {
+            for item in items {
+                if let Some(text) = item.get("text").and_then(|v| v.as_str()) {
+                    let text_lower = text.to_lowercase();
+                    let matches_topic = topics.iter().any(|topic| {
+                        text_lower.contains(&topic.to_lowercase())
+                    });
+                    
+                    if matches_topic {
+                        let id = item.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
+                        let created_at = item.get("created_at").and_then(|v| v.as_str()).unwrap_or("");
+                        
+                        tweets.push(Tweet {
+                            id: id.to_string(),
+                            text: text.to_string(),
+                            created_at: created_at.to_string(),
+                        });
+                    }
+                }
+            }
+        }
+        
+        if tweets.is_empty() {
+            log::warn!("No tweets found matching topics from twitter-api45");
+            return Err("No tweets found".into());
+        }
+        
+        log::info!("✅ Fetched {} tweets from twitter-api45", tweets.len());
         Ok(tweets)
     }
 }
