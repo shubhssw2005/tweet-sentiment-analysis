@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tweet Sentiment Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            margin-bottom: 50px;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 0.95em;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            padding: 25px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #999;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .stat-value.positive {
+            color: #2d5016;
+        }
+
+        .stat-value.negative {
+            color: #5c1a1a;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 30px;
+        }
+
+        .card h2 {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d5d5d5;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            background: #fff;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #333;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .status-badge.running {
+            background: #e8f5e9;
+            color: #2d5016;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status-badge.stopped {
+            background: #fce4ec;
+            color: #5c1a1a;
+            border: 1px solid #f8bbd0;
+        }
+
+        .helper-text {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .result-container {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: #f9f9f9;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border-left: 3px solid #000;
+        }
+
+        .result-item.positive {
+            border-left-color: #2d5016;
+        }
+
+        .result-item.negative {
+            border-left-color: #5c1a1a;
+        }
+
+        .result-text {
+            font-size: 0.95em;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+        }
+
+        .sentiment-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+
+        .sentiment-badge.positive {
+            background: #2d5016;
+            color: #fff;
+        }
+
+        .sentiment-badge.negative {
+            background: #5c1a1a;
+            color: #fff;
+        }
+
+        .confidence {
+            color: #666;
+        }
+
+        .tweets-section {
+            grid-column: 1 / -1;
+        }
+
+        .tweets-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .tweets-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tweets-container::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        .tweets-container::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .tweets-container::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 0.95em;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-text {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .tweets-section {
+                grid-column: 1;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 2em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Tweet Sentiment Analysis</h1>
+            <p>Real-time sentiment analysis of tweets powered by machine learning</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Tweets</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Positive</div>
+                <div class="stat-value positive" id="positiveCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Negative</div>
+                <div class="stat-value negative" id="negativeCount">0</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Analyze Tweet</h2>
+                <div class="form-group">
+                    <label for="tweetInput">Enter Tweet Text</label>
+                    <input type="text" id="tweetInput" placeholder="Paste a tweet to analyze...">
+                </div>
+                <button onclick="analyzeTweet()" class="full-width">Analyze</button>
+                <div id="analyzeResult"></div>
+            </div>
+
+            <div class="card">
+                <h2>Stream Control</h2>
+                <div id="streamStatus" class="status-badge stopped">Stopped</div>
+
+                <div class="form-group">
+                    <label for="topicsInput">Topics to Stream</label>
+                    <input type="text" id="topicsInput" placeholder="e.g., bitcoin, tesla, apple">
+                    <div class="helper-text">Separate topics with commas</div>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="startStream()">Start Stream</button>
+                    <button onclick="stopStream()">Stop Stream</button>
+                </div>
+                <button onclick="refreshResults()" class="full-width">Refresh Results</button>
+            </div>
+
+            <div class="card tweets-section">
+                <h2>Live Tweet Stream</h2>
+                <div class="tweets-container" id="tweetsContainer">
+                    <div class="empty-state">
+                        <p>No tweets yet. Start the stream to see results.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8080';
+        let isStreaming = false;
+        let refreshInterval = null;
+
+        async function analyzeTweet() {
+            const text = document.getElementById('tweetInput').value.trim();
+            if (!text) {
+                alert('Please enter a tweet');
+                return;
+            }
+
+            const resultDiv = document.getElementById('analyzeResult');
+            resultDiv.innerHTML = '<div class="result-container"><div class="status-text"><span class="loading-spinner"></span>Analyzing...</div></div>';
+
+            try {
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<div class="result-container"><div class="result-item">Error: ${data.error}</div></div>`;
+                } else {
+                    const sentiment = data.sentiment.toLowerCase();
+                    const confidence = (data.confidence * 100).toFixed(1);
+                    resultDiv.innerHTML = `
+                        <div class="result-container">
+                            <div class="result-item ${sentiment}">
+                                <div class="result-text">${escapeHtml(data.text)}</div>
+                                <div class="result-meta">
+                                    <span class="sentiment-badge ${sentiment}">${data.sentiment}</span>
+                                    <span class="confidence">${confidence}% confidence</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result-container"><div class="result-item">Error: ${error.message}</div></div>`;
+            }
+        }
+
+        async function startStream() {
+            const topicsInput = document.getElementById('topicsInput').value.trim();
+
+            if (!topicsInput) {
+                alert('Please enter at least one topic');
+                return;
+            }
+
+            const topics = topicsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
+            if (topics.length === 0) {
+                alert('Please enter valid topics');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/stream/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topics })
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    isStreaming = true;
+                    updateStreamStatus();
+
+                    if (refreshInterval) clearInterval(refreshInterval);
+                    refreshInterval = setInterval(refreshResults, 3000);
+
+                    alert(`Stream started for: ${topics.join(', ')}`);
+                }
+            } catch (error) {
+                alert('Error starting stream: ' + error.message);
+            }
+        }
+
+        async function stopStream() {
+            try {
+                const response = await fetch(`${API_URL}/stream/stop?t=${Date.now()}`, { method: 'POST' });
+                const data = await response.json();
+
+                isStreaming = false;
+                updateStreamStatus();
+
+                if (refreshInterval) clearInterval(refreshInterval);
+
+                // Clear tweets immediately
+                document.getElementById('tweetsContainer').innerHTML = '<div class="empty-state"><p>No tweets yet. Start the stream to see results.</p></div>';
+                document.getElementById('totalCount').textContent = '0';
+                document.getElementById('positiveCount').textContent = '0';
+                document.getElementById('negativeCount').textContent = '0';
+
+                alert('Stream stopped');
+            } catch (error) {
+                alert('Error stopping stream: ' + error.message);
+            }
+        }
+
+        async function refreshResults() {
+            try {
+                const response = await fetch(`${API_URL}/results?t=${Date.now()}`);
+                const data = await response.json();
+
+                updateStats(data.results);
+                displayTweets(data.results);
+            } catch (error) {
+                console.error('Error fetching results:', error);
+            }
+        }
+
+        function updateStats(tweets) {
+            const total = tweets.length;
+            const positive = tweets.filter(t => t.sentiment === 'POSITIVE').length;
+            const negative = tweets.filter(t => t.sentiment === 'NEGATIVE').length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('positiveCount').textContent = positive;
+            document.getElementById('negativeCount').textContent = negative;
+        }
+
+        function displayTweets(tweets) {
+            const container = document.getElementById('tweetsContainer');
+
+            if (tweets.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No tweets yet. Start the stream to see results.</p></div>';
+                return;
+            }
+
+            container.innerHTML = tweets.reverse().map(tweet => {
+                const sentiment = tweet.sentiment.toLowerCase();
+                const confidence = (tweet.confidence * 100).toFixed(1);
+                const time = new Date(tweet.timestamp).toLocaleTimeString();
+
+                return `
+                    <div class="result-item ${sentiment}">
+                        <div class="result-text">${escapeHtml(tweet.text)}</div>
+                        <div class="result-meta">
+                            <span class="sentiment-badge ${sentiment}">${tweet.sentiment}</span>
+                            <span class="confidence">${confidence}% • ${time}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStreamStatus() {
+            const statusDiv = document.getElementById('streamStatus');
+            if (isStreaming) {
+                statusDiv.className = 'status-badge running';
+                statusDiv.textContent = 'Running';
+            } else {
+                statusDiv.className = 'status-badge stopped';
+                statusDiv.textContent = 'Stopped';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initial load
+        refreshResults();
+        updateStreamStatus();
+
+        // Handle Enter key in input
+        document.getElementById('tweetInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                analyzeTweet();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: tweet-sentiment-api
+    runtime: rust
+    buildCommand: cargo build --release
+    startCommand: ./target/release/sentiment-api
+    envVars:
+      - key: RAPIDAPI_KEY
+        scope: build
+      - key: RUST_LOG
+        value: info
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true

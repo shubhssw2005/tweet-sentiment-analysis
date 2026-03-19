@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+  command = "echo 'Frontend is static HTML'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production]
+  environment = { API_URL = "https://your-backend.onrender.com" }
+
+[context.deploy-preview]
+  environment = { API_URL = "http://localhost:8080" }
+
+[context.branch-deploy]
+  environment = { API_URL = "http://localhost:8080" }
