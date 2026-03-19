@@ -107,22 +107,30 @@ impl TwitterClient {
             if let Ok(user) = serde_json::from_value::<TwitterUser>(user_val.clone()) {
                 if let Some(status) = user.status {
                     if !status.text.is_empty() {
-                        tweets.push(Tweet {
-                            id: format!("{}_{}", user.id, user.screen_name),
-                            text: status.text.clone(),
-                            created_at: status.created_at,
+                        // Filter by topics - only include if tweet contains any topic keyword
+                        let text_lower = status.text.to_lowercase();
+                        let matches_topic = topics.iter().any(|topic| {
+                            text_lower.contains(&topic.to_lowercase())
                         });
+                        
+                        if matches_topic {
+                            tweets.push(Tweet {
+                                id: format!("{}_{}", user.id, user.screen_name),
+                                text: status.text.clone(),
+                                created_at: status.created_at,
+                            });
+                        }
                     }
                 }
             }
         }
         
         if tweets.is_empty() {
-            log::warn!("⚠️ No tweets found from API");
-            return Err("No tweets available from API".into());
+            log::warn!("⚠️ No tweets found matching topics: {:?}", topics);
+            return Err("No tweets found for these topics".into());
         }
         
-        log::info!("✅ Fetched {} REAL tweets from Twitter241 API", tweets.len());
+        log::info!("✅ Fetched {} REAL tweets from Twitter241 API matching topics", tweets.len());
         Ok(tweets)
     }
 }
