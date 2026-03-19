@@ -54,7 +54,7 @@ async fn main() -> std::io::Result<()> {
     // Shared state for streaming results
     let results = Arc::new(Mutex::new(Vec::<AnalysisResult>::new()));
 
-    log::info!("Starting server on http://127.0.0.1:8080");
+    log::info!("Starting server on http://0.0.0.0:8080");
 
     HttpServer::new(move || {
         let model = Arc::clone(&model);
@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
             .route("/stream/stop", web::post().to(stop_stream))
             .route("/results", web::get().to(get_results))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .workers(4)
     .run()
     .await
