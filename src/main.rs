@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, HttpResponse, middleware, http};
+use actix_web::{web, App, HttpServer, HttpResponse, middleware};
 use std::sync::{Arc, Mutex};
 use tokio::task;
 use serde::{Deserialize, Serialize};
@@ -49,7 +49,10 @@ async fn main() -> std::io::Result<()> {
     );
 
     // Initialize Twitter client
-    let twitter_client = Arc::new(TwitterClient::new());
+    let twitter_client = Arc::new(
+        TwitterClient::new()
+            .expect("Failed to initialize Twitter client")
+    );
 
     // Shared state for streaming results
     let results = Arc::new(Mutex::new(Vec::<AnalysisResult>::new()));

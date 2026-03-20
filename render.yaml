@@ -5,7 +5,7 @@ services:
     buildCommand: cargo build --release
     startCommand: ./target/release/sentiment-api
     envVars:
-      - key: RAPIDAPI_KEY
+      - key: GETXAPI_KEY
         scope: build
       - key: RUST_LOG
         value: info

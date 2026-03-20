@@ -53,7 +53,7 @@ A real-time sentiment analysis system for tweets using machine learning. Built w
 
 - **Rust** 1.70+ ([Install](https://rustup.rs/))
 - **Python** 3.8+ with scikit-learn
-- **Twitter241 API Key** from RapidAPI ([Get here](https://rapidapi.com/))
+- **GetXAPI Key** from [GetXAPI](https://getxapi.com/) (free $0.1 credits, no card required)
 
 ## Installation
 
@@ -67,8 +67,8 @@ cd tweet-sentiment-analysis
 ### 2. Set Up Environment
 
 ```bash
-# Set your RapidAPI key
-export RAPIDAPI_KEY="your_api_key_here"
+# Set your GetXAPI key
+export GETXAPI_KEY="your_getxapi_key_here"
 
 # Install Python dependencies
 pip install scikit-learn numpy
@@ -151,7 +151,7 @@ Returns:
 ### Environment Variables
 
 ```bash
-RAPIDAPI_KEY=your_api_key_here
+GETXAPI_KEY=your_getxapi_key_here
 RUST_LOG=info
 ```
 
@@ -172,7 +172,7 @@ Edit `src/twitter.rs` to change:
 3. Create new Web Service
 4. Connect GitHub repository
 5. Set environment variables:
-   - `RAPIDAPI_KEY`: Your API key
+   - `GETXAPI_KEY`: Your GetXAPI key
    - `RUST_LOG`: info
 6. Build command: `cargo build --release`
 7. Start command: `./target/release/sentiment-api`

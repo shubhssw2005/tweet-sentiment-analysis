@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   sentiment-api:
@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+      - GETXAPI_KEY=${GETXAPI_KEY}
       - RUST_LOG=info
     volumes:
       - ./models:/app/models
