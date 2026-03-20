@@ -22,13 +22,11 @@ WORKDIR /app
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
-    chromium-browser \
-    chromium-driver \
-    xvfb \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install --no-cache-dir scikit-learn numpy zendriver requests
+RUN pip install --no-cache-dir scikit-learn numpy requests
 
 # Copy binary from builder
 COPY --from=builder /app/target/release/sentiment-api /app/sentiment-api
@@ -36,7 +34,6 @@ COPY --from=builder /app/target/release/sentiment-api /app/sentiment-api
 # Copy models and scripts
 COPY models ./models
 COPY sentiment_predictor.py .
-COPY tweet_scraper.py .
 COPY index.html .
 
 # Expose port
