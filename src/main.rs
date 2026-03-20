@@ -126,6 +126,7 @@ async fn analyze_sentiment(
 
 // Global state for streaming topics
 static mut STREAMING_TOPICS: Vec<String> = Vec::new();
+static mut STREAM_HANDLE: Option<tokio::task::JoinHandle<()>> = None;
 
 async fn start_stream(
     req: web::Json<StreamRequest>,
@@ -142,11 +143,14 @@ async fn start_stream(
     }
 
     unsafe {
+        // Stop previous stream if running
         if !STREAMING_TOPICS.is_empty() {
-            return HttpResponse::BadRequest().json(serde_json::json!({
-                "error": "Stream already running with topics: {}",
-                "topics": STREAMING_TOPICS.clone()
-            }));
+            STREAMING_TOPICS.clear();
+            if let Some(handle) = STREAM_HANDLE.take() {
+                handle.abort();
+            }
+            // Give it a moment to stop
+            std::thread::sleep(std::time::Duration::from_millis(100));
         }
         STREAMING_TOPICS = topics.clone();
     }
@@ -156,7 +160,7 @@ async fn start_stream(
     let results_clone = Arc::clone(&results);
     let topics_clone = topics.clone();
 
-    task::spawn(async move {
+    let handle = task::spawn(async move {
         log::info!("Starting tweet stream for topics: {:?}", topics_clone);
         
         loop {
@@ -199,6 +203,10 @@ async fn start_stream(
         }
     });
 
+    unsafe {
+        STREAM_HANDLE = Some(handle);
+    }
+
     HttpResponse::Ok().json(serde_json::json!({
         "status": "started",
         "topics": topics,
@@ -211,6 +219,9 @@ async fn stop_stream(
 ) -> HttpResponse {
     unsafe {
         STREAMING_TOPICS.clear();
+        if let Some(handle) = STREAM_HANDLE.take() {
+            handle.abort();
+        }
     }
     
     // Clear all results when stopping
