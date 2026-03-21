@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, HttpResponse, middleware};
+use actix_web::{web, App, HttpServer, HttpResponse, middleware, http};
 use std::sync::{Arc, Mutex};
 use tokio::task;
 use serde::{Deserialize, Serialize};
@@ -78,9 +78,13 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::get().to(serve_index))
             .route("/health", web::get().to(health_check))
             .route("/analyze", web::post().to(analyze_sentiment))
+            .route("/analyze", web::method(http::Method::OPTIONS).to(options_handler))
             .route("/stream/start", web::post().to(start_stream))
+            .route("/stream/start", web::method(http::Method::OPTIONS).to(options_handler))
             .route("/stream/stop", web::post().to(stop_stream))
+            .route("/stream/stop", web::method(http::Method::OPTIONS).to(options_handler))
             .route("/results", web::get().to(get_results))
+            .route("/results", web::method(http::Method::OPTIONS).to(options_handler))
     })
     .bind("0.0.0.0:8080")?
     .workers(4)
@@ -93,6 +97,14 @@ async fn health_check() -> HttpResponse {
         "status": "healthy",
         "timestamp": Utc::now().to_rfc3339()
     }))
+}
+
+async fn options_handler() -> HttpResponse {
+    HttpResponse::Ok()
+        .insert_header(("Access-Control-Allow-Origin", "*"))
+        .insert_header(("Access-Control-Allow-Methods", "GET, POST, OPTIONS"))
+        .insert_header(("Access-Control-Allow-Headers", "Content-Type"))
+        .finish()
 }
 
 async fn serve_index() -> HttpResponse {

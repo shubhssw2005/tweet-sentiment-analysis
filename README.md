@@ -4,7 +4,7 @@ A real-time sentiment analysis system for tweets using machine learning. Built w
 
 ## Features
 
-- **Real-time Tweet Streaming** - Fetch live tweets from Twitter241 API
+- **Real-time Tweet Streaming** - Fetch live tweets from Twitter using GetXAPI
 - **Sentiment Analysis** - Classify tweets as positive or negative using trained ML models
 - **Professional UI** - Clean, modern interface with real-time updates
 - **RESTful API** - Easy-to-use endpoints for integration
@@ -60,7 +60,7 @@ A real-time sentiment analysis system for tweets using machine learning. Built w
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/tweet-sentiment-analysis.git
+git clone https://github.com/shubhssw2005/tweet-sentiment-analysis.git
 cd tweet-sentiment-analysis
 ```
 
@@ -155,17 +155,9 @@ GETXAPI_KEY=your_getxapi_key_here
 RUST_LOG=info
 ```
 
-### API Configuration
-
-Edit `src/twitter.rs` to change:
-
-- User IDs for tweet fetching
-- API endpoint
-- Request timeout
-
 ## Deployment
 
-### Option 1: Deploy Backend on Render
+### Backend on Render
 
 1. Push code to GitHub
 2. Go to [Render.com](https://render.com)
@@ -177,116 +169,19 @@ Edit `src/twitter.rs` to change:
 6. Build command: `cargo build --release`
 7. Start command: `./target/release/sentiment-api`
 
-### Option 2: Deploy Backend on Railway
+### Frontend on Netlify
 
-1. Go to [Railway.app](https://railway.app)
-2. Create new project
-3. Connect GitHub repository
-4. Set environment variables
-5. Railway auto-detects Rust and deploys
-
-### Option 3: Deploy Frontend on Netlify
-
-1. Build frontend (already static HTML)
-2. Go to [Netlify.com](https://netlify.com)
-3. Drag and drop `index.html` or connect GitHub
-4. Update API URL in frontend to point to deployed backend
-
-### Full Stack Deployment (Recommended)
-
-**Backend on Render:**
-
-```
-https://your-app.onrender.com
-```
-
-**Frontend on Netlify:**
-
-- Update `API_URL` in `index.html` to your Render backend URL
-- Deploy to Netlify
-
-## Development
-
-### Build
-
-```bash
-cargo build --release
-```
-
-### Run Tests
-
-```bash
-cargo test
-```
-
-### View Logs
-
-```bash
-tail -f /tmp/api.log
-```
-
-## Performance
-
-- **Max Tweets**: 100 (auto-managed)
-- **Fetch Interval**: 10 seconds
-- **Response Time**: < 100ms
-- **Memory Usage**: ~50MB
-
-## Troubleshooting
-
-### No tweets appearing
-
-- Check API key is valid
-- Verify internet connection
-- Check logs: `tail -f /tmp/api.log`
-
-### Sentiment predictions incorrect
-
-- Models are trained on specific dataset
-- Consider retraining with your data
-- Check Python environment has scikit-learn
-
-### Frontend not updating
-
-- Clear browser cache (Ctrl+Shift+Delete)
-- Check API URL is correct
-- Verify backend is running
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+1. Go to [Netlify.com](https://netlify.com)
+2. Connect GitHub repository
+3. Update API URL in frontend to point to deployed backend
+4. Deploy
 
 ## License
 
 MIT License - see LICENSE file for details
 
-## Support
+## Live Demo
 
-For issues and questions:
+**Website**: [https://tweet-sentiment-26.netlify.app](https://tweet-sentiment-26.netlify.app)
 
-- Open GitHub Issues
-- Check existing documentation
-- Review logs for errors
-
-## Roadmap
-
-- [ ] Add more ML models
-- [ ] Support multiple languages
-- [ ] Add user authentication
-- [ ] Create mobile app
-- [ ] Add data export features
-- [ ] Implement caching layer
-
-## Author
-
-Created with ❤️ for real-time sentiment analysis
-
----
-
-**Live Demo**: [Coming Soon]
-
-**GitHub**: [Your Repository URL]
+**GitHub**: [https://github.com/shubhssw2005/tweet-sentiment-analysis](https://github.com/shubhssw2005/tweet-sentiment-analysis)
